@@ -27,7 +27,6 @@ final class ListenerProviderFactory
 	 * @param ContainerInterface           $container
 	 * @param ReflectionCollectorInterface $reflectionManager
 	 * @param AttributeCollectorInterface  $attributeCollector
-	 * @param ListenerProvider             $listenerProvider
 	 *
 	 * @return ListenerProviderInterface
 	 * @throws ContainerExceptionInterface
@@ -37,9 +36,10 @@ final class ListenerProviderFactory
 		ContainerInterface           $container,
 		ReflectionCollectorInterface $reflectionManager,
 		AttributeCollectorInterface  $attributeCollector,
-		ListenerProvider             $listenerProvider,
 	): ListenerProviderInterface
 	{
+		$listenerProvider = new ListenerProvider();
+
 		foreach ($attributeCollector->getAttributes(Listener::class) as $class => $attributes) {
 			if (!is_subclass_of($class, ListenerInterface::class)) {
 				throw new InvalidListenerException($class);
