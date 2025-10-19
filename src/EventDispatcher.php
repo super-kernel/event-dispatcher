@@ -6,10 +6,10 @@ namespace SuperKernel\EventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
-use SuperKernel\Attribute\Contract;
+use SuperKernel\Attribute\Provider;
 
 #[
-	Contract(EventDispatcherInterface::class),
+	Provider(EventDispatcherInterface::class),
 ]
 final readonly class EventDispatcher implements EventDispatcherInterface
 {

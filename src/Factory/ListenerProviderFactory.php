@@ -7,62 +7,59 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
-use SuperKernel\Attribute\Contract;
 use SuperKernel\Attribute\Factory;
 use SuperKernel\Attribute\Listener;
+use SuperKernel\Attribute\Provider;
+use SuperKernel\Contract\AttributeCollectorInterface;
 use SuperKernel\Contract\ListenerInterface;
-use SuperKernel\Contract\ReflectionManagerInterface;
+use SuperKernel\Contract\ReflectionCollectorInterface;
 use SuperKernel\EventDispatcher\Exception\InvalidListenerException;
 use SuperKernel\EventDispatcher\Provider\ListenerProvider;
-use function is_string;
 use function is_subclass_of;
 
 #[
-	Contract(ListenerProviderInterface::class),
+	Provider(ListenerProviderInterface::class),
 	Factory
 ]
 final class ListenerProviderFactory
 {
 	/**
-	 * @param ContainerInterface         $container
-	 * @param ReflectionManagerInterface $reflectionManager
+	 * @param ContainerInterface           $container
+	 * @param ReflectionCollectorInterface $reflectionManager
+	 * @param AttributeCollectorInterface  $attributeCollector
+	 * @param ListenerProvider             $listenerProvider
 	 *
 	 * @return ListenerProviderInterface
 	 * @throws ContainerExceptionInterface
 	 * @throws NotFoundExceptionInterface
 	 */
 	public function __invoke(
-		ContainerInterface         $container,
-		ReflectionManagerInterface $reflectionManager,
+		ContainerInterface           $container,
+		ReflectionCollectorInterface $reflectionManager,
+		AttributeCollectorInterface  $attributeCollector,
+		ListenerProvider             $listenerProvider,
 	): ListenerProviderInterface
 	{
-		$listenerProvider = new ListenerProvider();
-
-		/* @var array<string> $listeners */
-		$listeners = $reflectionManager->getAttributes(Listener::class);
-
-		foreach ($listeners as $listener) {
-
-			if (!is_subclass_of($listener, ListenerInterface::class)) {
-				throw new InvalidListenerException($listener);
+		foreach ($attributeCollector->getAttributes(Listener::class) as $class => $attributes) {
+			if (!is_subclass_of($class, ListenerInterface::class)) {
+				throw new InvalidListenerException($class);
 			}
 
-			$annotations = $reflectionManager->getClassAnnotations($listener, Listener::class);
+			/* @var Listener $attribute */
+			$attribute = $attributes[0];
 
-			/* @var Listener $annotation */
-			$annotation = $annotations[0]->newInstance();
-			$events     = is_string($annotation->event) ? [$annotation->event] : $annotation->event;
-			/* @var ListenerInterface $listenerInstance */
-			$listenerInstance = $container->get($listener);
+			$events = is_array($attribute->event) ? $attribute->event : [$attribute->event];
+
+			$listener = $container->get($class);
 
 			foreach ($events as $event) {
-				$listenerProvider->add(
+				$listenerProvider->insert(
 					$event,
 					[
-						$listenerInstance,
+						$listener,
 						'process',
 					],
-					$annotation->priority,
+					$attribute->priority,
 				);
 			}
 		}

@@ -13,7 +13,7 @@ final class ListenerProvider implements ListenerProviderInterface
 	 */
 	private array $listeners = [];
 
-	public function add(string $event, callable $listener, int $priority = 0): void
+	public function insert(string $event, callable $listener, int $priority = 0): void
 	{
 		$this->listeners[] = new ListenerData($event, $listener, $priority);
 	}
