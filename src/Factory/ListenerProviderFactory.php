@@ -40,26 +40,24 @@ final class ListenerProviderFactory
 	{
 		$listenerProvider = new ListenerProvider();
 
-		foreach ($attributeCollector->getAttributes(Listener::class) as $class => $attributes) {
-			if (!is_subclass_of($class, ListenerInterface::class)) {
-				throw new InvalidListenerException($class);
+		foreach ($attributeCollector->getAttributes(Listener::class) as $attribute) {
+			if (!is_subclass_of($attribute->class, ListenerInterface::class)) {
+				throw new InvalidListenerException($attribute->class);
 			}
 
-			/* @var Listener $attribute */
-			$attribute = $attributes[0];
+			/* @var Listener $listenerAttribute */
+			$listenerAttribute = $attribute->attribute;
 
-			$events = is_array($attribute->event) ? $attribute->event : [$attribute->event];
+			$listener = $container->get($attribute->class);
 
-			$listener = $container->get($class);
-
-			foreach ($events as $event) {
+			foreach ($listenerAttribute->event as $event) {
 				$listenerProvider->insert(
 					$event,
 					[
 						$listener,
 						'process',
 					],
-					$attribute->priority,
+					$listenerAttribute->priority,
 				);
 			}
 		}

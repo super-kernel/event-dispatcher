@@ -8,7 +8,10 @@ use Attribute;
 #[Attribute(Attribute::TARGET_CLASS)]
 final class Listener
 {
-	public function __construct(public string|array $event, public int $priority = 0)
+	public array $event;
+
+	public function __construct(string|array $event, public int $priority = 0)
 	{
+		$this->event = is_string($event) ? [$event] : $event;
 	}
 }
