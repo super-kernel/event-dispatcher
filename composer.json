@@ -9,21 +9,21 @@
         "super-kernel",
         "event-dispatcher"
     ],
-    "require": {
-        "php": ">=8.4",
-        "super-kernel/contract": "*",
-        "super-kernel/attribute": "*"
+    "config": {
+        "optimize-autoloader": true,
+        "classmap-authoritative": true
     },
     "minimum-stability": "stable",
+    "require": {
+        "php": ">=8.4",
+        "super-kernel/contract": "*"
+    },
     "autoload": {
         "psr-4": {
             "SuperKernel\\EventDispatcher\\": "src/"
         }
     },
-    "authors": [
-        {
-            "name": "wheakerd",
-            "email": "wheakerd@gmail.com"
-        }
-    ]
+    "require-dev": {
+        "super-kernel/di": "@dev"
+    }
 }

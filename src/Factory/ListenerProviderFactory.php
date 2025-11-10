@@ -7,19 +7,19 @@ use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
-use SuperKernel\Attribute\Factory;
-use SuperKernel\Attribute\Listener;
-use SuperKernel\Attribute\Provider;
 use SuperKernel\Contract\AttributeCollectorInterface;
 use SuperKernel\Contract\ListenerInterface;
 use SuperKernel\Contract\ReflectionCollectorInterface;
+use SuperKernel\Di\Attribute\Factory;
+use SuperKernel\Di\Attribute\Provider;
+use SuperKernel\EventDispatcher\Attribute\Listener;
 use SuperKernel\EventDispatcher\Exception\InvalidListenerException;
 use SuperKernel\EventDispatcher\Provider\ListenerProvider;
 use function is_subclass_of;
 
 #[
 	Provider(ListenerProviderInterface::class),
-	Factory
+	Factory,
 ]
 final class ListenerProviderFactory
 {

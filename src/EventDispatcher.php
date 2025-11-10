@@ -6,7 +6,7 @@ namespace SuperKernel\EventDispatcher;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\EventDispatcher\ListenerProviderInterface;
 use Psr\EventDispatcher\StoppableEventInterface;
-use SuperKernel\Attribute\Provider;
+use SuperKernel\Di\Attribute\Provider;
 
 #[
 	Provider(EventDispatcherInterface::class),
