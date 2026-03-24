@@ -1,0 +1,41 @@
+{
+    "name": "super-kernel/event-dispatcher",
+    "type": "library",
+    "license": "MIT",
+    "description": "An event-dispatcher that implements PSR-14 for super-kernel.",
+    "keywords": [
+        "php",
+        "swoole",
+        "super-kernel",
+        "event-dispatcher"
+    ],
+    "homepage": "https://github.com/super-kernel/event-dispatcher",
+    "support": {
+        "issues": "https://github.com/super-kernel/event-dispatcher/issues",
+        "source": "https://github.com/super-kernel/event-dispatcher"
+    },
+    "autoload": {
+        "psr-4": {
+            "SuperKernel\\EventDispatcher\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "SuperKernelTest\\EventDispatcher\\": "tests/src/"
+        }
+    },
+    "config": {
+        "sort‑packages": true,
+        "optimize-autoloader": true,
+        "classmap-authoritative": true
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": "~8.4.0",
+        "super-kernel/attribute": "~1.0.0",
+        "super-kernel/contract": "~1.0.0"
+    },
+    "require-dev": {
+        "super-kernel/di": "~1.0.0"
+    }
+}
