@@ -21,21 +21,22 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "SuperKernelTest\\EventDispatcher\\": "tests/src/"
+            "SuperKernelTest\\EventDispatcher\\": "tests/"
         }
     },
     "config": {
-        "sort‑packages": true,
+        "classmap-authoritative": true,
         "optimize-autoloader": true,
-        "classmap-authoritative": true
+        "sort‑packages": true
     },
     "minimum-stability": "stable",
+    "prefer-stable": true,
     "require": {
         "php": "~8.4.0",
-        "super-kernel/attribute": "~1.0.0",
-        "super-kernel/contract": "~1.0.0"
+        "super-kernel/attribute": "dev-main",
+        "super-kernel/contract": "dev-main"
     },
     "require-dev": {
-        "super-kernel/di": "~1.0.0"
+        "super-kernel/di": "dev-main"
     }
 }
