@@ -21,6 +21,9 @@ use function sprintf;
 
 final class ListenerProvider implements ListenerProviderInterface
 {
+    private const string INVALID_EVENTS_MESSAGE
+        = '%s::listen() must return a list containing only existing event class or interface names.';
+
     /**
      * @var list<array{
      *     listener: ListenerInterface,
@@ -58,7 +61,7 @@ final class ListenerProvider implements ListenerProviderInterface
             $eventClasses = $listener->listen();
 
             if (!array_is_list($eventClasses)) {
-                throw self::invalidEvents($className);
+                throw new InvalidArgumentException(sprintf(self::INVALID_EVENTS_MESSAGE, $className));
             }
 
             foreach ($eventClasses as $eventClass) {
@@ -66,7 +69,7 @@ final class ListenerProvider implements ListenerProviderInterface
                     !is_string($eventClass)
                     || (!class_exists($eventClass) && !interface_exists($eventClass))
                 ) {
-                    throw self::invalidEvents($className);
+                    throw new InvalidArgumentException(sprintf(self::INVALID_EVENTS_MESSAGE, $className));
                 }
             }
 
@@ -105,16 +108,5 @@ final class ListenerProvider implements ListenerProviderInterface
         }
 
         yield from $this->resolvedListeners[$eventType];
-    }
-
-    /**
-     * @param class-string $className
-     */
-    private static function invalidEvents(string $className): InvalidArgumentException
-    {
-        return new InvalidArgumentException(sprintf(
-            '%s::listen() must return a list containing only existing event class or interface names.',
-            $className,
-        ));
     }
 }

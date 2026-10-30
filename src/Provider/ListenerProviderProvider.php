@@ -12,7 +12,6 @@ use Psr\EventDispatcher\ListenerProviderInterface;
 use SuperKernel\Attribute\FactoryProvider;
 use SuperKernel\Attribute\Listener;
 use SuperKernel\Contract\AnnotationCollectorInterface;
-use SuperKernel\Contract\AttributeMetadataInterface;
 use SuperKernel\EventDispatcher\ListenerProvider;
 
 use function usort;
@@ -37,7 +36,7 @@ final readonly class ListenerProviderProvider
         foreach ($collector->getClassesWithAttribute(Listener::class) as $className => [$attribute]) {
             $listeners[] = [
                 'className' => $className,
-                'priority'  => self::priority($attribute),
+                'priority'  => $attribute->attribute()->priority,
                 'order'     => $order++,
             ];
         }
@@ -58,13 +57,5 @@ final readonly class ListenerProviderProvider
             $this->container,
             ...$listenerClasses,
         );
-    }
-
-    /**
-     * @param AttributeMetadataInterface<Listener> $attribute
-     */
-    private static function priority(AttributeMetadataInterface $attribute): int
-    {
-        return $attribute->attribute()->priority;
     }
 }
