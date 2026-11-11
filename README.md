@@ -4,18 +4,64 @@
 
 # SuperKernel Event Dispatcher
 
-`super-kernel/event-dispatcher` implements PSR-14 synchronous event dispatching and provides `psr/event-dispatcher-implementation` 1.0. It discovers classes marked with `SuperKernel\Attribute\Listener`, resolves them from the shared SuperKernel PSR-11 container, and maps their declared event classes. It does not depend on Symfony.
+`super-kernel/event-dispatcher` is the PSR-14 event dispatcher of SuperKernel: it finds the classes declared with `#[Listener]`, creates them through the container, and calls the ones that match an event synchronously, in priority order.
 
-## Listener declaration
+## Installation
 
-Implement the shared listener contract, return an indexed list of event class names from `listen()`, handle matching events through `process(object $event): void`, and mark the class with the Listener Attribute:
+```bash
+composer require super-kernel/event-dispatcher
+```
+
+The package provides `psr/event-dispatcher-implementation` 1.0. It creates listeners through a PSR-11 container, `super-kernel/di` in a SuperKernel application, and finds them in the metadata that `skernel build` generates, so a project needs SKERNEL to build it.
+
+## What it provides
+
+- `Psr\EventDispatcher\EventDispatcherInterface`, which dispatches any event object and returns it.
+- Listeners declared with `#[Listener]` and `ListenerInterface`, ordered by priority.
+- Matching by class: a listener of a class or interface also receives its subclasses and implementations.
+- Stopping propagation through PSR-14's `StoppableEventInterface`.
+- `Psr\EventDispatcher\ListenerProviderInterface`, which lists the listeners of an event.
+
+It does not:
+
+- dispatch asynchronously or defer events;
+- collect listener return values;
+- register or remove listeners at run time;
+- adapt Symfony's event dispatcher; `super-kernel/framework` does.
+
+## Quick start
+
+Declare an event. Save it as `src/Account/UserRegistered.php`:
 
 ```php
+<?php
+
+declare(strict_types=1);
+
+namespace Src\Account;
+
+final readonly class UserRegistered
+{
+    public function __construct(public string $email)
+    {
+    }
+}
+```
+
+Declare a listener of the event. Save it as `src/Account/SendWelcomeMail.php`:
+
+```php
+<?php
+
+declare(strict_types=1);
+
+namespace Src\Account;
+
 use SuperKernel\Attribute\Listener;
 use SuperKernel\Contract\ListenerInterface;
 
-#[Listener(priority: 100)]
-final class RecordAuditEntry implements ListenerInterface
+#[Listener]
+final readonly class SendWelcomeMail implements ListenerInterface
 {
     public function listen(): array
     {
@@ -29,27 +75,58 @@ final class RecordAuditEntry implements ListenerInterface
      */
     public function process(object $event): void
     {
-        // Handle the event synchronously.
+        echo "Welcome mail sent to {$event->email}", PHP_EOL;
     }
 }
 ```
 
-`SuperKernel\Contract\ListenerInterface::listen()` must return a list containing only existing event class or interface names. A listener can declare more than one event. Parent classes and implemented interfaces match child event objects. Every implementation handles events through `ListenerInterface::process(object $event): void`. The provider invokes a listener only for a compatible declaration, so a listener declaring one event processes it directly and may document that concrete type in PHPDoc. When a listener declares more than one event class, its `process()` implementation is responsible for distinguishing the concrete event, for example with `instanceof` or `match`. The annotated listener type does not need to be directly instantiable: the DI container may resolve an interface or abstract listener through a declared factory, provided the resolved object implements `ListenerInterface`.
-
-Higher priorities run first. Equal priorities preserve discovery order. Listener return values are ignored.
-
-Listeners are resolved from the container when the listener provider is created. A resolved object that does not implement `ListenerInterface`, or an invalid `listen()` result, raises `InvalidArgumentException`.
-
-## Dispatching
-
-Inject `Psr\EventDispatcher\EventDispatcherInterface`:
+Dispatch the event from a script. Save it as `bin/register.php`:
 
 ```php
-use Psr\EventDispatcher\EventDispatcherInterface;
+<?php
 
-$event = $container->get(EventDispatcherInterface::class)->dispatch(new UserRegistered());
+declare(strict_types=1);
+
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Src\Account\UserRegistered;
+use SuperKernel\Context\ApplicationContext;
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+$events = ApplicationContext::getContainer()->get(EventDispatcherInterface::class);
+
+$events->dispatch(new UserRegistered('ada@example.com'));
 ```
 
-The dispatcher invokes applicable listeners synchronously in priority order, returns the same event object, checks `StoppableEventInterface` before the first listener and after every listener invocation, stops immediately when `isPropagationStopped()` returns `true`, and lets listener exceptions propagate unchanged.
+Build the project and run the script:
 
-`Psr\EventDispatcher\ListenerProviderInterface` is also available from the container. For each event it returns the matching listeners as `[$listener, 'process']` callables in priority order. The dispatcher's interface and concrete-class lookups share one instance.
+```bash
+skernel build
+php bin/register.php
+```
+
+It prints `Welcome mail sent to ada@example.com`.
+
+## Public surface
+
+| Name | Kind | Purpose |
+| --- | --- | --- |
+| `SuperKernel\Attribute\Listener` | Attribute | Registers the annotated class as a listener; `priority` orders it, higher first. |
+| `SuperKernel\Contract\ListenerInterface` | Interface | Implemented by a listener: `listen()` names its events, `process()` handles one. |
+| `Psr\EventDispatcher\EventDispatcherInterface` | Interface | Provided by the container; dispatches an event to its listeners. |
+| `Psr\EventDispatcher\ListenerProviderInterface` | Interface | Provided by the container; returns the listeners of an event in order. |
+
+## Behavior to know
+
+- Listeners run synchronously, higher priorities first and equal priorities in the order the build found them; `dispatch()` returns the same event object.
+- A listener's exception propagates unchanged out of `dispatch()`, and later listeners do not run.
+- Every listener is created when the dispatcher is first needed. A listener that does not implement `ListenerInterface`, or whose `listen()` does not return a list of existing class or interface names, raises `InvalidArgumentException` then, so no event can be dispatched and `skernel build` fails.
+- Listeners are found in the build metadata: run `skernel build` again after adding, removing, or changing a listener, or start with `skernel run`, which builds first.
+
+## Documentation
+
+The developer documentation describes declaring listeners, matching several events, stopping propagation, the listener provider, and the error messages: [SuperKernel Event Dispatcher](https://github.com/super-kernel/.github/blob/main/docs/components/event-dispatcher.md).
+
+## License
+
+Released under the MIT License. See [LICENSE](LICENSE).
